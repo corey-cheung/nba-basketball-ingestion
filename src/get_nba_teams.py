@@ -39,7 +39,7 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]]:
     return None
 
 
-def create_schema_and_table(create_schema, create_table, insert):
+def generate_db_objects(create_schema_and_team_table, insert):
     """
     Create database objects
 
@@ -58,8 +58,7 @@ def create_schema_and_table(create_schema, create_table, insert):
         cursor = conn.cursor()
         print("connected to postgres!")
 
-        cursor.execute(create_schema)
-        cursor.execute(create_table)
+        cursor.execute(create_schema_and_team_table)
         cursor.execute(insert)
         conn.commit()
 
@@ -78,11 +77,10 @@ def main(url):
     """
 
     # get create schema, create table and insert into table queries
-    with open(os.path.join(os.getcwd(), "src/sql/create_schema.sql")) as query:
-        create_schema = query.read()
-
-    with open(os.path.join(os.getcwd(), "src/sql/create_table_team.sql")) as query:
-        create_table = query.read()
+    with open(
+        os.path.join(os.getcwd(), "src/sql/create_schema_and_team_table.sql")
+    ) as query:
+        create_schema_and_table = query.read()
 
     teams = query_teams_endpoint(url)
     insert = """INSERT INTO nba_basketball.team
@@ -94,7 +92,7 @@ VALUES"""
         insert += f"\n{get_row_to_insert(team)},"
     insert += f"\n{get_row_to_insert(teams[-1])};"
 
-    create_schema_and_table(create_schema, create_table, insert)
+    generate_db_objects(create_schema_and_table, insert)
 
 
 if __name__ == "__main__":

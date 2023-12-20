@@ -1,3 +1,5 @@
+CREATE SCHEMA IF NOT EXISTS nba_basketball;
+
 DROP TABLE IF EXISTS nba_basketball.team;
 
 CREATE TABLE nba_basketball.team (
