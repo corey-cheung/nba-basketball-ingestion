@@ -78,7 +78,8 @@ def main(url):
 
     # get create schema, create table and insert into table queries
     with open(
-        os.path.join(os.getcwd(), "src/sql/create_schema_and_team_table.sql")
+        os.path.join(os.getcwd(), "src/sql/create_schema_and_team_table.sql"),
+        encoding="UTF-8",
     ) as query:
         create_schema_and_table = query.read()
 
