@@ -8,7 +8,7 @@ import psycopg2
 print("ball don't lie")
 
 
-def get_row_to_insert(team: dict) -> str:
+def get_row_to_insert(team: dict[str, str | int]) -> str:
     """
     Return the row to be used in a SQL insert statement.
 
@@ -22,7 +22,7 @@ def get_row_to_insert(team: dict) -> str:
     return row
 
 
-def query_teams_endpoint(url: str) -> list[dict[str, str | int]]:
+def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
     """
     Query the teams API and return the data.
     When the response status code isn't 200 return the error message.
@@ -39,7 +39,7 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]]:
     return None
 
 
-def generate_db_objects(create_schema_and_team_table, insert):
+def generate_db_objects(create_schema_and_team_table: str, insert: str) -> None:
     """
     Create database objects
 
@@ -68,7 +68,7 @@ def generate_db_objects(create_schema_and_team_table, insert):
             conn.close()
 
 
-def main(url):
+def main(url: str) -> None:
     """
     Main function.
 
@@ -98,7 +98,3 @@ VALUES"""
 
 if __name__ == "__main__":
     main(url="https://www.balldontlie.io/api/v1/teams?page=1")
-
-# teams = query_teams_endpoint(url="https://www.balldontlie.io/api/v1/teams?page=1")
-# for team in teams:
-#     print(get_row_to_insert(team))
