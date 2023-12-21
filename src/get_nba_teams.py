@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Query the ball don't lie nba teams end point and ingest the data into a postgres table.
+Query the "ball don't lie" nba teams end point
+and ingest the data into a postgres table.
 API docs: https://www.balldontlie.io/home.html#introduction
 """
 
@@ -28,7 +29,8 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
 
 def get_row_to_insert(team: dict[str, str | int]) -> str:
     """
-    Break down the json results from API and return a string to be used in the SQL insert statement.
+    Break down the json results from API and return a string
+    to be used in the SQL insert statement.
 
     Parameters:
         team: A dictionary that represents one row of the nba teams table.
@@ -69,7 +71,8 @@ def generate_db_objects(query: str) -> None:
 
 def main(url: str) -> None:
     """
-    Query the teamms endpoint, parse the result into DDL and DML, then populate the teams table in postgres.
+    Query the teamms endpoint, parse the result into DDL and DML,
+    then populate the teams table in postgres.
 
     Parameters:
         url: The url of the teams endpoint.
