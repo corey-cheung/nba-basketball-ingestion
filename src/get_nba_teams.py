@@ -1,25 +1,12 @@
 #!/usr/bin/env python
-"""Create the nba_basketball schema and teams table."""
+"""
+Query the ball don't lie nba teams end point and ingest the data into a postgres table.
+API docs: https://www.balldontlie.io/home.html#introduction
+"""
 
 import os
 import requests
 import psycopg2
-
-print("ball don't lie")
-
-
-def get_row_to_insert(team: dict[str, str | int]) -> str:
-    """
-    Return the row to be used in a SQL insert statement.
-
-    Parameters:
-        blah blah
-    """
-    values = [
-        str(i) if str(i).isnumeric() else "'" + str(i) + "'" for i in team.values()
-    ]  # non-integers will need a literal "'" in the insert DML
-    row = "(" + ", ".join(values) + ")"
-    return row
 
 
 def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
@@ -28,7 +15,7 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
     When the response status code isn't 200 return the error message.
 
     Parameters:
-        blah blah
+        url: The url of the teams endpoint.
     """
     response = requests.get(url, timeout=10)
     if response.status_code == 200:
@@ -39,12 +26,26 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
     return None
 
 
-def generate_db_objects(create_schema_and_team_table: str, insert: str) -> None:
+def get_row_to_insert(team: dict[str, str | int]) -> str:
     """
-    Create database objects
+    Break down the json results from API and return a string to be used in the SQL insert statement.
 
     Parameters:
-        blah blah
+        team: A dictionary that represents one row of the nba teams table.
+    """
+    values = [
+        str(i) if str(i).isnumeric() else "'" + str(i) + "'" for i in team.values()
+    ]  # non-integers will need a literal "'" in the insert DML
+    row = "(" + ", ".join(values) + ")"
+    return row
+
+
+def generate_db_objects(query: str) -> None:
+    """
+    Create postgres database objects from the provided DDL and DML.
+
+    Parameters:
+        query: The query to be executed against postgres.
     """
 
     try:
@@ -58,11 +59,9 @@ def generate_db_objects(create_schema_and_team_table: str, insert: str) -> None:
         cursor = conn.cursor()
         print("connected to postgres!")
 
-        cursor.execute(create_schema_and_team_table)
-        cursor.execute(insert)
+        cursor.execute(query)
         conn.commit()
 
-        print("created schema and table")
     finally:
         if conn is None:
             conn.close()
@@ -70,10 +69,10 @@ def generate_db_objects(create_schema_and_team_table: str, insert: str) -> None:
 
 def main(url: str) -> None:
     """
-    Main function.
+    Query the teamms endpoint, parse the result into DDL and DML, then populate the teams table in postgres.
 
     Parameters:
-        blah blah
+        url: The url of the teams endpoint.
     """
 
     # get create schema, create table and insert into table queries
@@ -81,7 +80,7 @@ def main(url: str) -> None:
         os.path.join(os.getcwd(), "src/sql/create_schema_and_team_table.sql"),
         encoding="UTF-8",
     ) as query:
-        create_schema_and_table = query.read()
+        query = query.read()
 
     teams = query_teams_endpoint(url)
     insert = """INSERT INTO nba_basketball.team
@@ -93,7 +92,11 @@ VALUES"""
         insert += f"\n{get_row_to_insert(team)},"
     insert += f"\n{get_row_to_insert(teams[-1])};"
 
-    generate_db_objects(create_schema_and_table, insert)
+    query += f"\n{insert}"
+
+    generate_db_objects(query)
+
+    print("created the teams schema and table")
 
 
 if __name__ == "__main__":
