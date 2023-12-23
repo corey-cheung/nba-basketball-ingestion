@@ -5,9 +5,8 @@ and ingest the data into a postgres table.
 API docs: https://www.balldontlie.io/home.html#introduction
 """
 
-import os
 import requests
-import psycopg2
+from nba_pg_ingestion_utils import *
 
 
 def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
@@ -25,48 +24,6 @@ def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
     print(f"Error: {response.status_code}")
     print(response.reason)
     return None
-
-
-def get_row_to_insert(team: dict[str, str | int]) -> str:
-    """
-    Break down the json results from API and return a string
-    to be used in the SQL insert statement.
-
-    Parameters:
-        team: A dictionary that represents one row of the nba teams table.
-    """
-    values = [
-        str(i) if str(i).isnumeric() else "'" + str(i) + "'" for i in team.values()
-    ]  # non-integers will need a literal "'" in the insert DML
-    row = "(" + ", ".join(values) + ")"
-    return row
-
-
-def generate_db_objects(query: str) -> None:
-    """
-    Create postgres database objects from the provided DDL and DML.
-
-    Parameters:
-        query: The query to be executed against postgres.
-    """
-
-    try:
-        conn = psycopg2.connect(
-            dbname="dev",
-            user=os.environ.get("PG_USER"),
-            password=os.environ.get("PG_PASSWORD"),
-            host="127.0.0.1",  # localhost
-            port="5432",
-        )
-        cursor = conn.cursor()
-        print("connected to postgres!")
-
-        cursor.execute(query)
-        conn.commit()
-
-    finally:
-        if conn is None:
-            conn.close()
 
 
 def main(url: str) -> None:
