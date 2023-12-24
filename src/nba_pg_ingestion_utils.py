@@ -16,9 +16,12 @@ def get_row_to_insert(data: dict[str, str | int]) -> str:
         data: A dictionary that represents one row of the table we want to insert into.
     """
     values = [
-        str(i) if str(i).isnumeric() else "'" + str(i) + "'" for i in data.values()
-    ]  # non-integers will need a literal "'" in the insert DML
-    row = ", ".join(values)
+        str(i)
+        if (str(i).isnumeric() or str(i).lower() in ("true", "false"))
+        else "'" + str(i) + "'"
+        for i in data.values()
+    ]  # non-integers and non-bools will need a literal "'" in the insert DML
+    row = ",".join(values)
     return row
 
 
