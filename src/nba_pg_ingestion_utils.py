@@ -1,5 +1,11 @@
+"""
+Utility functions to be used in the ingestion of data from different "Ball Don't Lie"
+endpoints to postgres.
+"""
+
 import os
 import psycopg2
+
 
 def get_row_to_insert(data: dict[str, str | int]) -> str:
     """
@@ -29,7 +35,7 @@ def write_to_csv(path: str, data: list[dict[str, str | int]], truncate: bool):
     csv_exists = os.path.isfile(path)
     if truncate and csv_exists:
         os.remove(path)
-    with open(path, 'a', encoding="UTF-8") as games_csv:
+    with open(path, "a", encoding="UTF-8") as games_csv:
         for row in data:
             row_to_insert = get_row_to_insert(row)
             print(row_to_insert)
