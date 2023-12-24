@@ -18,5 +18,4 @@ CREATE TABLE nba_basketball.game (
     CONSTRAINT fk_visitor_team
         FOREIGN KEY(visitor_team_id)
         REFERENCES nba_basketball.team(team_id)
-)
-;
+);

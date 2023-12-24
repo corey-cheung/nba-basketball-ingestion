@@ -58,8 +58,6 @@ def get_teams_data(
     params = {
         "per_page": per_page,
         "page": page,
-        # "dates[]": ["2023-12-20", "2023-12-21"],
-        # "seasons[]": ["2023"],
         "dates[]": dates,
         "seasons[]": seasons,
         "start_date": start_date,
@@ -115,9 +113,7 @@ with open(
 ) as query:
     query = query.read()
 
-generate_db_objects(query)
 csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_games.csv")
-copy_into_query = f"COPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
-print(copy_into_query)
-
-generate_db_objects(copy_into_query)
+query += f"\nCOPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
+generate_db_objects(query)
+print(query)
