@@ -15,6 +15,27 @@ def get_row_to_insert(data: dict[str, str | int]) -> str:
     row = ", ".join(values)
     return row
 
+
+def write_to_csv(path: str, data: list[dict[str, str | int]], truncate: bool):
+    """
+    Format data received from the ball don't lie API and write it to a CSV.
+
+    Parameters:
+        path: The path of the csv file.
+        data: A list of dictionaries, each dictionary is a row to insert into the csv.
+        truncate: Should the csv file be truncated before inserting.
+    """
+    # Check if CSV exists
+    csv_exists = os.path.isfile(path)
+    if truncate and csv_exists:
+        os.remove(path)
+    with open(path, 'a', encoding="UTF-8") as games_csv:
+        for row in data:
+            row_to_insert = get_row_to_insert(row)
+            print(row_to_insert)
+            games_csv.write(f"{row_to_insert}\n")
+
+
 def generate_db_objects(query: str) -> None:
     """
     Create postgres database objects from the provided DDL and DML.
