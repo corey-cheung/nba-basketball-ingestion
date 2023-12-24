@@ -90,7 +90,7 @@ def get_teams_data(
                 seasons=seasons,
                 start_date=start_date,
                 end_date=end_date,
-                truncate=truncate,
+                truncate=False, # Never truncate when looping to the next page
             )
     else:
         print(f"Error: {response.status_code}")
@@ -104,7 +104,7 @@ get_teams_data(
     per_page=2,
     dates=["2023-12-20", "2023-12-21"],
     seasons=["2023"],
-    truncate=True,
+    truncate=True
 )
 
 with open(
