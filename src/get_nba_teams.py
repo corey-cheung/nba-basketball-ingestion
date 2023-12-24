@@ -49,8 +49,8 @@ VALUES"""
 
     # append rows to the insert query, last row needs a ";"
     for team in teams[:-1]:
-        insert += f"\n{get_row_to_insert(team)},"
-    insert += f"\n{get_row_to_insert(teams[-1])};"
+        insert += f"\n({get_row_to_insert(team)}),"
+    insert += f"\n({get_row_to_insert(teams[-1])});"
 
     query += f"\n{insert}"
 

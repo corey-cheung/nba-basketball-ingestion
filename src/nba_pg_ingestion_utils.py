@@ -12,7 +12,7 @@ def get_row_to_insert(data: dict[str, str | int]) -> str:
     values = [
         str(i) if str(i).isnumeric() else "'" + str(i) + "'" for i in data.values()
     ]  # non-integers will need a literal "'" in the insert DML
-    row = "(" + ", ".join(values) + ")"
+    row = ", ".join(values)
     return row
 
 def generate_db_objects(query: str) -> None:
