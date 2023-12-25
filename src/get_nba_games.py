@@ -1,18 +1,7 @@
 #!/usr/bin/env python
 
-import csv
 import requests
 from nba_pg_ingestion_utils import *
-
-# TODO testing - to delete
-url = "https://www.balldontlie.io/api/v1/games"
-params = {"per_page": "2", "page": "5", "dates[]": ["2023-12-20", "2023-12-21"]}
-response = requests.get(url, params=params, timeout=10)
-if response.status_code == 200:
-    data = response.json()["data"]
-    meta = response.json()["meta"]
-print(meta)
-print(data)
 
 
 def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict:
@@ -90,7 +79,7 @@ def get_teams_data(
                 seasons=seasons,
                 start_date=start_date,
                 end_date=end_date,
-                truncate=False, # Never truncate when looping to the next page
+                truncate=False,  # Never truncate when looping to the next page
             )
     else:
         print(f"Error: {response.status_code}")
@@ -98,22 +87,32 @@ def get_teams_data(
         return None
 
 
-get_teams_data(
-    url="https://www.balldontlie.io/api/v1/games",
-    page=1,
-    per_page=2,
-    dates=["2023-12-20", "2023-12-21"],
-    seasons=["2023"],
-    truncate=True
-)
+def main() -> None:
+    """
+    Query the games end point, format and write to a CSV, then copy into a postgres table.
+    """
+    # Query API, format, and write to CSV
+    get_teams_data(
+        url="https://www.balldontlie.io/api/v1/games",
+        page=1,
+        per_page=2, # max 100
+        dates=["2023-12-20", "2023-12-21"],
+        start_date="2023-12-20",
+        end_date="2023-12-21",
+        seasons=["2023"],
+        truncate=True,
+    )
+    # Create table
+    with open(
+        os.path.join(os.getcwd(), "src/sql/create_game_table.sql"),
+        encoding="UTF-8",
+    ) as query:
+        query = query.read()
+    # Copy CSV into table
+    csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_games.csv")
+    query += f"\nCOPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
+    generate_db_objects(query)
 
-with open(
-    os.path.join(os.getcwd(), "src/sql/create_game_table.sql"),
-    encoding="UTF-8",
-) as query:
-    query = query.read()
 
-csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_games.csv")
-query += f"\nCOPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
-generate_db_objects(query)
-print(query)
+if __name__ == "__main__":
+    main()

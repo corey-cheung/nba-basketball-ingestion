@@ -41,7 +41,6 @@ def write_to_csv(path: str, data: list[dict[str, str | int]], truncate: bool):
     with open(path, "a", encoding="UTF-8") as games_csv:
         for row in data:
             row_to_insert = get_row_to_insert(row)
-            print(row_to_insert)
             games_csv.write(f"{row_to_insert}\n")
 
 
