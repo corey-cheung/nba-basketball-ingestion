@@ -120,7 +120,8 @@ def main() -> None:
         query = query.read()
     # Copy CSV into table
     csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_games.csv")
-    query += f"\nCOPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
+    query += f"\nCOPY nba_basketball.game FROM "
+    query += f"'{csv_path}' DELIMITER ',' QUOTE '''' csv;"
     generate_db_objects(query)
 
 

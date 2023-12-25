@@ -1,4 +1,4 @@
--- DROP TABLE IF EXISTS nba_basketball.game;
+DROP TABLE IF EXISTS nba_basketball.game;
 
 CREATE TABLE nba_basketball.game (
     game_id INTEGER,
