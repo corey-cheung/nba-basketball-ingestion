@@ -62,4 +62,4 @@ VALUES"""
 
 
 if __name__ == "__main__":
-    main(url="https://www.balldontlie.io/api/v1/teams?page=1")
+    main(url="https://www.balldontlie.io/api/v1/teams?per_page=100")

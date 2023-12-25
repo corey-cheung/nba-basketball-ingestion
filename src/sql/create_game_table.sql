@@ -1,7 +1,7 @@
-DROP TABLE IF EXISTS nba_basketball.game;
+-- DROP TABLE IF EXISTS nba_basketball.game;
 
 CREATE TABLE nba_basketball.game (
-    game_id INTEGER PRIMARY KEY,
+    game_id INTEGER,
     game_date DATE,
     home_team_id INTEGER, -- FKs to team
     home_team_score INTEGER,

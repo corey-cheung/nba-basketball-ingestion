@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Backfill the NBA games table with a bulk upload of games. Query the ball don't lie NBA games endpoint. Format the data and write to a CSV, then
+Backfill the NBA games table with a bulk upload of games. Query the ball don't lie NBA
+games endpoint. Format the data and write to a CSV, then
 copy the result into a postgres table.
 API docs: https://www.balldontlie.io/home.html#games
 """
@@ -89,8 +90,9 @@ def get_teams_data(
             end_date=end_date,
             truncate=False,  # Never truncate when looping to the next page
         )
+
     else:
-        print(f"Error: {response.status_code}")
+        print(f"API Response Error: {response.status_code}")
         print(response.reason)
         return None
 
@@ -107,8 +109,8 @@ def main() -> None:
         # dates=["2023-12-20", "2023-12-21"],
         # start_date="2023-12-20",
         # end_date="2023-12-21",
-        seasons=["2023"],
-        truncate=True,
+        seasons=batch5,
+        truncate=False,
     )
     # Create table
     with open(
@@ -121,6 +123,13 @@ def main() -> None:
     query += f"\nCOPY nba_basketball.game FROM '{csv_path}' DELIMITER ',';"
     generate_db_objects(query)
 
+
+# For ad hoc batching when getting random rate limit errors
+batch1 = list(range(1940, 1961))
+batch2 = list(range(1961, 1981))
+batch3 = list(range(1981, 1995))
+batch4 = list(range(1995, 2010))
+batch5 = list(range(2010, 2024))
 
 if __name__ == "__main__":
     main()
