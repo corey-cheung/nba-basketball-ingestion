@@ -1,7 +1,13 @@
 #!/usr/bin/env python
-
+"""
+Backfill the NBA games table with a bulk upload of games.
+Query the ball don't lie NBA games endpoint. Format the data and write to a CSV, then
+copy the result into a postgres table.
+API docs: https://www.balldontlie.io/home.html#games
+"""
+import os
 import requests
-from nba_pg_ingestion_utils import *
+from nba_pg_ingestion_utils import write_to_csv, generate_db_objects
 
 
 def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict:
@@ -25,6 +31,7 @@ def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict
     return formatted
 
 
+# pylint: disable=R0913, R1710
 def get_teams_data(
     url: str,
     per_page: int,
@@ -70,17 +77,17 @@ def get_teams_data(
             meta["total_pages"] == meta["current_page"] or meta["total_pages"] == 0
         ):  # base case
             return None
-        else:
-            get_teams_data(
-                url=url,
-                page=page + 1,  # loop to next page
-                per_page=per_page,
-                dates=dates,
-                seasons=seasons,
-                start_date=start_date,
-                end_date=end_date,
-                truncate=False,  # Never truncate when looping to the next page
-            )
+
+        get_teams_data(
+            url=url,
+            page=page + 1,  # loop to next page
+            per_page=per_page,
+            dates=dates,
+            seasons=seasons,
+            start_date=start_date,
+            end_date=end_date,
+            truncate=False,  # Never truncate when looping to the next page
+        )
     else:
         print(f"Error: {response.status_code}")
         print(response.reason)
@@ -95,10 +102,10 @@ def main() -> None:
     get_teams_data(
         url="https://www.balldontlie.io/api/v1/games",
         page=1,
-        per_page=2, # max 100
-        dates=["2023-12-20", "2023-12-21"],
-        start_date="2023-12-20",
-        end_date="2023-12-21",
+        per_page=100,  # max 100
+        # dates=["2023-12-20", "2023-12-21"],
+        # start_date="2023-12-20",
+        # end_date="2023-12-21",
         seasons=["2023"],
         truncate=True,
     )

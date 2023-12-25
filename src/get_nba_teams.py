@@ -2,11 +2,11 @@
 """
 Query the "ball don't lie" nba teams end point
 and ingest the data into a postgres table.
-API docs: https://www.balldontlie.io/home.html#introduction
+API docs: https://www.balldontlie.io/home.html#teams
 """
-
+import os
 import requests
-from nba_pg_ingestion_utils import *
+from nba_pg_ingestion_utils import generate_db_objects, get_row_to_insert
 
 
 def query_teams_endpoint(url: str) -> list[dict[str, str | int]] | None:
