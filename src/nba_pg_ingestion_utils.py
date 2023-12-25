@@ -4,6 +4,7 @@ endpoints to postgres.
 """
 
 import os
+
 import psycopg2
 
 

@@ -24,6 +24,7 @@ conda install \
 	--quiet \
 	--yes \
     black \
-    pylint
+    pylint \
+	isort
 
 echo "Finished, now spin up your new conda environment with 'conda activate nba-basketball'"

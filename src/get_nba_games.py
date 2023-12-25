@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """
-Backfill the NBA games table with a bulk upload of games.
-Query the ball don't lie NBA games endpoint. Format the data and write to a CSV, then
+Backfill the NBA games table with a bulk upload of games. Query the ball don't lie NBA games endpoint. Format the data and write to a CSV, then
 copy the result into a postgres table.
 API docs: https://www.balldontlie.io/home.html#games
 """
 import os
+
 import requests
-from nba_pg_ingestion_utils import write_to_csv, generate_db_objects
+
+from nba_pg_ingestion_utils import generate_db_objects, write_to_csv
 
 
 def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict:
