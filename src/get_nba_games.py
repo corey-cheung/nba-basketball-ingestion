@@ -34,7 +34,7 @@ def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict
 
 
 # pylint: disable=R0913, R1710
-def get_teams_data(
+def get_games_data(
     url: str,
     per_page: int,
     page: int,
@@ -80,7 +80,7 @@ def get_teams_data(
         ):  # base case
             return None
 
-        get_teams_data(
+        get_games_data(
             url=url,
             page=page + 1,  # loop to next page
             per_page=per_page,
@@ -102,7 +102,7 @@ def main() -> None:
     Query the games end point, format and write to a CSV, then copy into a postgres table.
     """
     # Query API, format, and write to CSV
-    get_teams_data(
+    get_games_data(
         url="https://www.balldontlie.io/api/v1/games",
         page=1,
         per_page=100,  # max 100

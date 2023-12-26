@@ -70,3 +70,35 @@ def generate_db_objects(query: str) -> None:
     finally:
         if conn is None:
             conn.close()
+
+
+def query_postgres(query: str, fetchall: bool=False) -> list[tuple]:
+    """
+    Query postgres and return a single row or all the rows in a list of tuples.
+
+    Paramas:
+        query: The select query to run against postgres
+        fetchall: Should the query return all rows, if false one row will be returned
+    """
+    try:
+        conn = psycopg2.connect(
+            dbname="dev",
+            user=os.environ.get("PG_USER"),
+            password=os.environ.get("PG_PASSWORD"),
+            host="127.0.0.1",  # localhost
+            port="5432",
+        )
+        cursor = conn.cursor()
+        print("connected to postgres!")
+
+        cursor.execute(query)
+        if fetchall:
+            result = cursor.fetchall()
+        else:
+            result = list(cursor.fetchone())
+
+        return result
+
+    finally:
+        if conn is None:
+            conn.close()
