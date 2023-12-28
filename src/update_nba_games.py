@@ -82,7 +82,7 @@ def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
     return to_upsert
 
 
-def main(look_back):
+def main(look_back: int) -> None:
     """
     Find the max game date to update and apply a look back. Query the API and upsert the
     new data.
