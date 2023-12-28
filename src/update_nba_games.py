@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
-to do blah blah
+Query the nba_basketball.game table to find a the max game date with a 'Final' status.
+Apply look back and query the game data from the API between this start date
+and the current date. With the new data, upsert the nba_basketball.games postgres table.
 """
 # - get max game_date where status is 'Final'
 # - query the API with that date and the preceeding dates
@@ -22,15 +24,19 @@ from nba_pg_ingestion_utils import (
 # import pytz
 
 
-def get_start_and_end_dates(lookback) -> tuple[str, str]:
+def get_start_and_end_dates(look_back) -> tuple[str, str]:
     """
-    blah
+    Return the start and end dates for the API query parameters.
+
+    Parameters:
+        look_back: A look back window in days of data to query, for a factor of safety
+            or when a bigger backfill is needed.
     """
-    print(f"lookback days: {lookback}")
+    print(f"look_back days: {look_back}")
     query = """ SELECT MAX(game_date) FROM nba_basketball.game WHERE status = 'Final';
     """
     max_game_date = query_postgres(query)[0]
-    start_date = (max_game_date - timedelta(days=lookback)).strftime("%Y-%m-%d")
+    start_date = (max_game_date - timedelta(days=look_back)).strftime("%Y-%m-%d")
     end_date = datetime.now().date().strftime("%Y-%m-%d")
 
     return start_date, end_date
@@ -38,7 +44,12 @@ def get_start_and_end_dates(lookback) -> tuple[str, str]:
 
 def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
     """
-    blah
+    Query the games endpoint and format the data into a string for an insert query.
+
+    Parameters:
+        url: The url of the games endpoint.
+        start_date: The starting date for the games to be queried.
+        end_date: The final date for the games to queried.
     """
     current_page = 1
     total_pages = 1
@@ -71,11 +82,16 @@ def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
     return to_upsert
 
 
-def main(lookback):
+def main(look_back):
     """
-    blah
+    Find the max game date to update and apply a look back. Query the API and upsert the
+    new data.
+
+    Parameters:
+        look_back: A look back window in days of data to query, for a factor of safety
+            or when a bigger backfill is needed.
     """
-    start_date, end_date = get_start_and_end_dates(lookback=lookback)
+    start_date, end_date = get_start_and_end_dates(look_back=look_back)
     print(f"Updating the games table with games between {start_date} and {end_date}.")
 
     to_upsert = get_games_to_update(
@@ -117,4 +133,4 @@ def main(lookback):
 
 
 if __name__ == "__main__":
-    main(lookback=2)
+    main(look_back=2)

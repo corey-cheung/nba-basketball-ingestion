@@ -76,7 +76,7 @@ def query_postgres(query: str, fetchall: bool=False) -> list[tuple]:
     """
     Query postgres and return a single row or all the rows in a list of tuples.
 
-    Paramas:
+    Parameters:
         query: The select query to run against postgres
         fetchall: Should the query return all rows, if false one row will be returned
     """
