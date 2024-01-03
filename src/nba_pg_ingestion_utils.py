@@ -18,7 +18,11 @@ def get_row_to_insert(data: dict[str, str | int]) -> str:
     """
     values = [
         str(i)
-        if (str(i).isnumeric() or str(i).lower() in ("true", "false"))
+        if ( # don't put numbers, floats, booleans, or nulls in quotes
+            str(i).isnumeric()
+            or str(i).lower() in ("true", "false")
+            or str(i) == "NULL"
+        )
         else "'" + str(i) + "'"
         for i in data.values()
     ]  # non-integers and non-bools will need a literal "'" in the insert DML
@@ -72,7 +76,7 @@ def generate_db_objects(query: str) -> None:
             conn.close()
 
 
-def query_postgres(query: str, fetchall: bool=False) -> list[tuple]:
+def query_postgres(query: str, fetchall: bool = False) -> list[tuple]:
     """
     Query postgres and return a single row or all the rows in a list of tuples.
 
@@ -102,3 +106,19 @@ def query_postgres(query: str, fetchall: bool=False) -> list[tuple]:
     finally:
         if conn is None:
             conn.close()
+
+def handle_nulls(func):
+    def wrapper(*args, **kwargs):
+        data = func(*args, **kwargs)
+        data = {k: ("NULL" if v is None or v == "" else v) for (k, v) in data.items()}
+        return data
+
+    return wrapper
+
+def handle_apostrophes(func):
+    def wrapper(*args, **kwargs):
+        data = func(*args, **kwargs)
+        data = {k: (str(v).replace("'", "''") if "'" in str(v) else v) for (k, v) in data.items()}
+        return data
+
+    return wrapper
