@@ -12,7 +12,9 @@ import requests
 from nba_pg_ingestion_utils import generate_db_objects, write_to_csv
 
 
-def format_games_data(game: dict[str, str | int | dict[str, str | int]]) -> dict:
+def format_games_data(
+    game: dict[str, str | int | dict[str, str | int]]
+) -> dict[str, str | int]:
     """
     Format each row of game data retrieved from the API.
 
@@ -120,7 +122,7 @@ def main() -> None:
         query = query.read()
     # Copy CSV into table
     csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_games.csv")
-    query += f"\nCOPY nba_basketball.game FROM "
+    query += "\nCOPY nba_basketball.game FROM "
     query += f"'{csv_path}' DELIMITER ',' QUOTE '''' csv;"
     generate_db_objects(query)
 

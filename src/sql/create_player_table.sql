@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS nba_basketball.player;
+-- DROP TABLE IF EXISTS nba_basketball.player;
 
 CREATE TABLE IF NOT EXISTS nba_basketball.player (
     player_id INTEGER PRIMARY KEY,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS nba_basketball.player (
     height_inches INTEGER,
     weight_pounds INTEGER,
 
-        -- Foreign keys
+    -- Foreign keys
     CONSTRAINT fk_player_team
         FOREIGN KEY(team_id)
         REFERENCES nba_basketball.team(team_id)
