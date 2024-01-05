@@ -107,6 +107,7 @@ def query_postgres(query: str, fetchall: bool = False) -> list[tuple]:
         if conn is None:
             conn.close()
 
+
 def handle_nulls(func):
     def wrapper(*args, **kwargs):
         data = func(*args, **kwargs)
@@ -114,6 +115,7 @@ def handle_nulls(func):
         return data
 
     return wrapper
+
 
 def handle_apostrophes(func):
     def wrapper(*args, **kwargs):
