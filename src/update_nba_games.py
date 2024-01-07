@@ -4,11 +4,6 @@ Query the nba_basketball.game table to find a the max game date with a 'Final' s
 Apply look back and query the game data from the API between this start date
 and the current date. With the new data, upsert the nba_basketball.games postgres table.
 """
-# - get max game_date where status is 'Final'
-# - query the API with that date and the preceeding dates
-# - format the data into insert values
-# - write an upsert query to add the rows
-# get american timezone(?)
 
 from datetime import datetime, timedelta
 
@@ -42,7 +37,7 @@ def get_start_and_end_dates(look_back) -> tuple[str, str]:
     return start_date, end_date
 
 
-def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
+def get_games_to_update(url: str, start_date: str=None, end_date: str=None) -> str:
     """
     Query the games endpoint and format the data into a string for an insert query.
 
@@ -53,10 +48,10 @@ def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
     """
     current_page = 1
     total_pages = 1
-    to_upsert = ""
+    to_upsert = []
     while current_page <= total_pages and total_pages != 0:
         params = {
-            "per_page": 10,
+            "per_page": 100,
             "page": current_page,
             "start_date": start_date,
             "end_date": end_date,
@@ -71,7 +66,8 @@ def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
             for row in data:
                 formatted = format_games_data(row)
                 row_to_insert = "(" + get_row_to_insert(formatted) + ")"
-                to_upsert += f"\n{row_to_insert},"
+                # to_upsert += f"\n{row_to_insert},"
+                to_upsert.append(row_to_insert)
 
             current_page = meta["current_page"] + 1
             total_pages = meta["total_pages"]
@@ -79,7 +75,7 @@ def get_games_to_update(url: str, start_date: str, end_date: str) -> str:
             print(f"API Response Error: {response.status_code}")
             print(response.reason)
             break
-    return to_upsert
+    return set(to_upsert)
 
 
 def main(look_back: int) -> None:
@@ -98,10 +94,15 @@ def main(look_back: int) -> None:
         url="https://www.balldontlie.io/api/v1/games",
         start_date=start_date,
         end_date=end_date,
+        # start_date="2023-12-30",
+        # end_date="2024-01-05",
     )
-    to_upsert = to_upsert[:-1]  # get rid of last comma
 
-    upsert_query = """
+    to_upsert_string = ""
+    for row in to_upsert:
+        to_upsert_string += f"\n{row},"
+
+    upsert_query = f"""
     INSERT INTO nba_basketball.game
     (
         game_id,
@@ -114,9 +115,8 @@ def main(look_back: int) -> None:
         post_season,
         status
         )
-    VALUES"""
-    upsert_query += to_upsert
-    upsert_query += """
+    VALUES
+    {to_upsert_string[:-1]}
     ON CONFLICT (game_id) DO UPDATE SET
         game_id = EXCLUDED.game_id,
         game_date = EXCLUDED.game_date,
@@ -129,6 +129,7 @@ def main(look_back: int) -> None:
         status = EXCLUDED.status
     ;
     """
+    # print(upsert_query)
     generate_db_objects(upsert_query)
 
 
