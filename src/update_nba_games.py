@@ -16,8 +16,6 @@ from nba_pg_ingestion_utils import (
     query_postgres,
 )
 
-# import pytz
-
 
 def get_start_and_end_dates(look_back) -> tuple[str, str]:
     """
@@ -94,8 +92,6 @@ def main(look_back: int) -> None:
         url="https://www.balldontlie.io/api/v1/games",
         start_date=start_date,
         end_date=end_date,
-        # start_date="2023-12-30",
-        # end_date="2024-01-05",
     )
 
     to_upsert_string = ""
