@@ -17,7 +17,9 @@ conda install \
 	--quiet \
 	--yes \
 	requests \
-    psycopg2
+    psycopg2 \
+	tenacity \
+	pandas
 conda install \
 	--channel conda-forge \
 	--channel defaults \

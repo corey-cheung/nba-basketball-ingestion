@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 """
-Get nba players:
-
-- query players from the API
-- create insert DML
-- create pg objects
+Query the players endpoint, format the data and create a DML query that upserts the data
+into the a postgres table.
+API docs: https://www.balldontlie.io/home.html#players
 """
 
 import os

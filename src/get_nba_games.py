@@ -78,7 +78,7 @@ def get_games_data(
 
         # Recursively call the function until we get to the last page
         if (
-            meta["total_pages"] == meta["current_page"] or meta["total_pages"] == 0
+            meta["total_pages"] == meta["current_page"] or meta["total_pages"] == 0 or meta["current_page"] % 200 == 0
         ):  # base case
             return None
 
@@ -101,17 +101,36 @@ def get_games_data(
 
 def main() -> None:
     """
-    Query the games end point, format and write to a CSV, then copy into a postgres table.
+    Query the games end point, format and write to a CSV, then copy into a postgres
+    table. Batches of 200 pages are used to avoid API rate limiting and python max
+    recursion depth errors.
     """
     # Query API, format, and write to CSV
     get_games_data(
         url="https://www.balldontlie.io/api/v1/games",
         page=1,
         per_page=100,  # max 100
-        # dates=["2023-12-20", "2023-12-21"],
-        # start_date="2023-12-20",
-        # end_date="2023-12-21",
-        seasons=batch5,
+        truncate=False,
+    )
+    print('done first 200')
+    get_games_data(
+        url="https://www.balldontlie.io/api/v1/games",
+        page=201,
+        per_page=100,  # max 100
+        truncate=False,
+    )
+    print('done first 400')
+    get_games_data(
+        url="https://www.balldontlie.io/api/v1/games",
+        page=401,
+        per_page=100,  # max 100
+        truncate=False,
+    )
+    print('done first 600')
+    get_games_data(
+        url="https://www.balldontlie.io/api/v1/games",
+        page=601,
+        per_page=100,  # max 100
         truncate=False,
     )
     # Create table
@@ -127,12 +146,6 @@ def main() -> None:
     generate_db_objects(query)
 
 
-# For ad hoc batching when getting random rate limit errors
-batch1 = list(range(1940, 1961))
-batch2 = list(range(1961, 1981))
-batch3 = list(range(1981, 1995))
-batch4 = list(range(1995, 2010))
-batch5 = list(range(2010, 2024))
 
 if __name__ == "__main__":
     main()
