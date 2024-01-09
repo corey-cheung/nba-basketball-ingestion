@@ -93,7 +93,7 @@ def main(look_back: int) -> None:
         start_date=start_date,
         end_date=end_date,
     )
-
+    print(f"upserting {len(to_upsert)} rows")
     to_upsert_string = ""
     for row in to_upsert:
         to_upsert_string += f"\n{row},"
@@ -130,4 +130,4 @@ def main(look_back: int) -> None:
 
 
 if __name__ == "__main__":
-    main(look_back=2)
+    main(look_back=3)

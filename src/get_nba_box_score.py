@@ -8,7 +8,6 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
 from nba_pg_ingestion_utils import handle_nulls, write_to_csv, generate_db_objects
 
-print("getting dat game stat quick fast fr")
 
 @handle_nulls
 def format_box_score(data):
@@ -54,112 +53,93 @@ def format_box_score(data):
 
 
 @retry(stop=stop_after_attempt(10), wait=wait_fixed(60)) # 60 seconds
-def get_game_stats(per_page, page, game_ids=None, seasons=None, truncate=False):
-    url = "https://www.balldontlie.io/api/v1/stats"
-    params = {
-        "per_page": per_page,
-        "page": page,
-        "game_ids[]": game_ids,
-        "seasons[]": seasons,
-    }
-    response = requests.get(url=url, params=params, timeout=120)
-    if response.status_code == 200:
-        data = response.json()["data"]
-        meta = response.json()["meta"]
-        print(f"season {seasons}: got data from page {meta['current_page']} of {meta['total_pages']}")
+def get_game_stats(per_page, page, game_ids=None, seasons=None, truncate=False, max_page=None):
 
-        data = [format_box_score(i) for i in data]
-        csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_box_scores.csv")
-        write_to_csv(path=csv_path, data=data, truncate=truncate)
+    try:
+        url = "https://www.balldontlie.io/api/v1/stats"
+        params = {
+            "per_page": per_page,
+            "page": page,
+            "game_ids[]": game_ids,
+            "seasons[]": seasons,
+        }
+        response = requests.get(url=url, params=params, timeout=120)
+        if response.status_code == 200:
+            data = response.json()["data"]
+            meta = response.json()["meta"]
+            print(f"season {seasons}: got data from page {meta['current_page']} of {meta['total_pages']}")
 
-        # call the function recursively
-        if meta["current_page"]  == meta["total_pages"] or meta["total_pages"] == 0:
-            return
+            data = [format_box_score(i) for i in data]
+            csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_box_scores.csv")
+            write_to_csv(path=csv_path, data=data, truncate=truncate)
 
-        get_game_stats(
-            per_page=per_page,
-            page=page+1, # loop to the next page
-            game_ids=game_ids,
-            seasons=seasons,
-            truncate=False # Never truncate when looping to the next page
-            )
-    elif response.status_code in (503,429):
-        # Retry on 503 errors after waiting for 60 seconds
-        print(f"{response.status_code}: retrying")
-        raise Exception(f"{response.status_code} error - Retry after waiting for 60 seconds")
-    else:
-        print(f"API Response Error: {response.status_code}")
-        print(response.reason)
-        return None
+            # call the function recursively
+            if ((meta["current_page"]  >= meta["total_pages"])
+                or (meta["total_pages"] == 0)
+                or (max_page is not None and meta["current_page"] == max_page)):
+                return
 
-    # current_page = page # over write the global
-    # total_pages = page + 1
+            get_game_stats(
+                per_page=per_page,
+                page=page+1, # loop to the next page
+                game_ids=game_ids,
+                seasons=seasons,
+                truncate=False, # Never truncate when looping to the next page
+                max_page=max_page
+                )
+        elif response.status_code in (503,429):
+            # Retry on 503 errors after waiting for 60 seconds
+            print(f"{response.status_code}: retrying")
+            raise Exception(f"{response.status_code} error - Retry after waiting for 60 seconds")
+        else:
+            print(f"API Response Error: {response.status_code}")
+            print(response.reason)
+            return None
+    except Exception as e:
+        print(f"An exception occurred: {e}")
+        # You can add more detailed exception handling or logging here if needed
+        raise
 
-    # while current_page <= total_pages and total_pages != 0:
-
-    #     url = "https://www.balldontlie.io/api/v1/stats"
-    #     params = {
-    #         "per_page": per_page,
-    #         "page": current_page,
-    #         "game_ids[]": game_ids,
-    #         "seasons[]": seasons,
-    #     }
-    #     response = requests.get(url=url, params=params, timeout=120)
-
-    #     if response.status_code == 200:
-    #         data = response.json()["data"]
-    #         meta = response.json()["meta"]
-    #         print(f"season {seasons}: got data from page {meta['current_page']} of {meta['total_pages']}")
-
-    #         print('attempting to format')
-    #         data = [format_box_score(i) for i in data]
-    #         print('formatted data')
-    #         csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_box_scores.csv")
-    #         write_to_csv(path=csv_path, data=data, truncate=truncate)
-    #         print('wrote to csv')
-
-    #         # update the pages
-    #         current_page = meta["current_page"] + 1
-    #         total_pages = meta["total_pages"]
-
-    #     elif response.status_code in (503,429):
-    #         # Retry on 503 errors after waiting for 60 seconds
-    #         print(f"{response.status_code}: retrying")
-    #         raise Exception(f"{response.status_code} error - Retry after waiting for 60 seconds")
-    #     else:
-    #         print(f"API Response Error: {response.status_code}")
-    #         print(response.reason)
-    #         break
 
 def main():
-
-    batch1 = list(range(2020,2010, -1))
-    # batch2 = list(range(2010,2000, -1))
-    # batch3 = list(range(2000,1990, -1))
+    # batch1 = list(range(2009,2010, -1))
+    # batch2 = list(range(2008,2000, -1))
+    batch3 = list(range(1977,1940, -1))
     # batch4 = list(range(1990,1980, -1))
     # batch5 = list(range(1980,1970, -1))
     # batch6 = list(range(1970,1960, -1))
     # batch7 = list(range(1960,1939, -1))
 
-    get_game_stats(
-        per_page=100,
-        page=200,
-        seasons=[2022],
-        # game_ids=["27404"],
-        truncate=False,
-        )
+    for season in batch3:
+        get_game_stats(
+            per_page=100,
+            page=1,
+            seasons=[season],
+            # game_ids=["27404"],
+            truncate=False,
+            max_page=200
+            )
+        print('finished the first 200')
 
-    # # Create table
-    # with open(
-    #     os.path.join(os.getcwd(), "src/sql/create_box_score_table.sql"),
-    #     encoding="UTF-8",
-    # ) as query:
-    #     query = query.read()
-    # # Copy CSV into table
-    # csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_box_scores.csv")
-    # query += "\nCOPY nba_basketball.box_score FROM "
-    # query += f"'{csv_path}' DELIMITER ',' QUOTE '''' NULL 'NULL' csv;"
-    # generate_db_objects(query)
+        get_game_stats(
+            per_page=100,
+            page=200,
+            seasons=[season],
+            # game_ids=["27404"],
+            truncate=False,
+            )
+
+    # Create table
+    with open(
+        os.path.join(os.getcwd(), "src/sql/create_box_score_table.sql"),
+        encoding="UTF-8",
+    ) as query:
+        query = query.read()
+    # Copy CSV into table
+    csv_path = os.path.join(os.getcwd(), "src/data_backfill/nba_box_scores.csv")
+    query += "\nCOPY nba_basketball.box_score FROM "
+    query += f"'{csv_path}' DELIMITER ',' QUOTE '''' NULL 'NULL' csv;"
+    generate_db_objects(query)
 
 
 if __name__ == "__main__":

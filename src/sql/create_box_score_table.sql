@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS nba_basketball.box_score;
+-- DROP TABLE IF EXISTS nba_basketball.box_score;
 
-CREATE TABLE IF NOT EXISTS nba_basketball.box_score (
+CREATE TABLE IF NOT EXISTS nba_basketball.box_score(
 
     box_score_id INTEGER,
     game_id INTEGER, -- fks to game
